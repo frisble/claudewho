@@ -1,3 +1,11 @@
+```
+   ____ _        _   _   _ ____  _______        ___   _  ___
+  / ___| |      / \ | | | |  _ \| ____\ \      / / | | |/ _ \
+ | |   | |     / _ \| | | | | | |  _|  \ \ /\ / /| |_| | | | |
+ | |___| |___ / ___ \ |_| | |_| | |___  \ V  V / |  _  | |_| |
+  \____|_____/_/   \_\___/|____/|_____|  \_/\_/  |_| |_|\___/
+```
+
 # claudewho
 
 Manage multiple Claude Code account configurations easily. Switch between work and personal accounts, or maintain separate configurations for different projects.
@@ -96,71 +104,12 @@ This will prompt for confirmation before deleting the account directory.
 | `add <name>` | Create a new account configuration |
 | `remove <name>` | Remove an account (with confirmation) |
 | `use <name>` | Switch to the specified account |
-| `ide-setup` | Configure IDE integration (VSCode, Antigravity) |
+| `ide-setup` | Configure IDE integration (VSCode) |
 | `shell-init` | Print shell aliases for sourcing |
 | `version` | Show version information |
 | `help` | Show help message |
 
-## Migrating from claude-accounts
-
-If you're upgrading from `claude-accounts` (v1.x), follow these steps:
-
-### 1. Uninstall the old version
-```bash
-brew uninstall claude-accounts
-```
-
-### 2. Install the new version
-```bash
-brew install frisble/tap/claudewho
-```
-
-### 3. Migrate your configuration
-
-**Option A: Manual setup (recommended for most users)**
-```bash
-# Simply recreate your accounts with the new tool
-claudewho add work
-claudewho add personal
-# ... then authenticate each account as usual
-```
-
-**Option B: Migrate existing directories**
-```bash
-# Rename config file
-mv ~/.claude-accounts.conf ~/.claudewho.conf
-
-# Migrate account directories
-mv ~/.claude-work ~/.claudewho-work
-mv ~/.claude-personal ~/.claudewho-personal
-# ... repeat for each account
-
-# Migrate current account marker
-mv ~/.claude-current-account ~/.claudewho-current-account
-
-# Recreate wrapper scripts
-claudewho shell-init
-source ~/.zshrc  # or ~/.bashrc
-```
-
-### 4. Update shell configuration
-Replace in your `~/.zshrc` or `~/.bashrc`:
-```bash
-# Old:
-eval "$(claude-accounts shell-init)"
-
-# New:
-eval "$(claudewho shell-init)"
-```
-
-### 5. Reload your shell
-```bash
-source ~/.zshrc
-```
-
-Your accounts will now be accessible as `claudewho-work`, `claudewho-personal`, etc.
-
-## IDE Integration (VSCode, Antigravity)
+## IDE Integration (VSCode)
 
 The Claude Code IDE extensions bundle their own CLI and don't respect `CLAUDE_CONFIG_DIR` by default. claudewho provides wrapper scripts that work with the extension's `claudeProcessWrapper` setting.
 
