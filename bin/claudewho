@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-VERSION="2.0.0"
+VERSION="2.0.1"
 CONFIG_FILE="${CLAUDEWHO_CONFIG:-$HOME/.claudewho.conf}"
 CONFIG_DIR_PREFIX="$HOME/.claudewho-"
 WRAPPER_DIR="$HOME/.local/bin"
@@ -228,7 +228,7 @@ list_accounts() {
 
         if [[ -d "$dir" ]]; then
             # Check if authenticated by looking for credentials
-            if [[ -f "$dir/.credentials.json" ]] || [[ -f "$dir/credentials.json" ]]; then
+            if [[ -f "$dir/.claude.json" ]] || [[ -f "$dir/.credentials.json" ]] || [[ -f "$dir/credentials.json" ]]; then
                 status="${GREEN}authenticated${NC}"
             else
                 status="${YELLOW}not authenticated${NC}"
