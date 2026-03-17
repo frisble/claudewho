@@ -103,6 +103,63 @@ remove_wrapper() {
     fi
 }
 
+# Create IDE wrapper that follows current account (dynamic)
+create_ide_wrapper() {
+    local wrapper_path="${WRAPPER_DIR}/claudewho-ide"
+
+    mkdir -p "$WRAPPER_DIR"
+
+    cat > "$wrapper_path" << 'WRAPPER_EOF'
+#!/bin/bash
+# Claude IDE wrapper - managed by claudewho
+# Used as claude-code.claudeProcessWrapper in VSCode
+# Follows the current account set by: claudewho use <name>
+
+CURRENT_ACCOUNT_FILE="$HOME/.claudewho-current-account"
+CONFIG_DIR_PREFIX="$HOME/.claudewho-"
+
+if [[ -f "$CURRENT_ACCOUNT_FILE" ]]; then
+    account=$(cat "$CURRENT_ACCOUNT_FILE" 2>/dev/null)
+    if [[ -n "$account" ]]; then
+        export CLAUDE_CONFIG_DIR="${CONFIG_DIR_PREFIX}${account}"
+    fi
+fi
+
+exec "$@"
+WRAPPER_EOF
+
+    chmod +x "$wrapper_path"
+}
+
+# Create IDE wrapper for a specific account (static)
+create_ide_account_wrapper() {
+    local name="$1"
+    local dir="${CONFIG_DIR_PREFIX}${name}"
+    local wrapper_path="${WRAPPER_DIR}/claudewho-ide-${name}"
+
+    mkdir -p "$WRAPPER_DIR"
+
+    cat > "$wrapper_path" << EOF
+#!/bin/bash
+# Claude IDE wrapper for account '$name' - managed by claudewho
+# Used as claude-code.claudeProcessWrapper in VSCode
+export CLAUDE_CONFIG_DIR="$dir"
+exec "\$@"
+EOF
+
+    chmod +x "$wrapper_path"
+}
+
+# Remove IDE wrapper for an account
+remove_ide_account_wrapper() {
+    local name="$1"
+    local wrapper_path="${WRAPPER_DIR}/claudewho-ide-${name}"
+
+    if [[ -f "$wrapper_path" ]]; then
+        rm -f "$wrapper_path"
+    fi
+}
+
 # Get current account name
 get_current_account() {
     if [[ -f "$CURRENT_ACCOUNT_FILE" ]]; then
@@ -194,6 +251,7 @@ usage() {
     echo "    add <name>          Create a new account configuration"
     echo "    remove <name>       Remove an account (with confirmation)"
     echo "    use <name>          Switch to an account"
+    echo "    ide-setup           Configure IDE integration (VSCode, Antigravity)"
     echo "    shell-init          Print shell aliases (alternative to wrapper scripts)"
     echo "    version             Show version information"
     echo "    help                Show this help message"
@@ -302,8 +360,9 @@ add_account() {
     touch_config
     echo "$name" >> "$CONFIG_FILE"
 
-    # Create wrapper script
+    # Create wrapper scripts
     create_wrapper "$name"
+    create_ide_account_wrapper "$name"
     echo -e "${GREEN}Created${NC} ${WRAPPER_DIR}/claudewho-${name}"
 
     echo -e "${GREEN}Account '$name' added successfully!${NC}"
@@ -360,8 +419,9 @@ remove_account() {
         echo -e "${GREEN}Removed${NC} $dir"
     fi
 
-    # Remove wrapper script
+    # Remove wrapper scripts
     remove_wrapper "$name"
+    remove_ide_account_wrapper "$name"
     echo -e "${GREEN}Removed${NC} ${WRAPPER_DIR}/claudewho-${name}"
 
     # Remove from config (create temp file without the account)
@@ -396,14 +456,107 @@ use_account() {
         mkdir -p "$dir"
     fi
 
-    # Ensure claude wrapper exists
+    # Ensure wrappers exist
     create_claude_wrapper
+    create_ide_wrapper
 
     # Save current account
     echo "$name" > "$CURRENT_ACCOUNT_FILE"
 
     echo -e "${GREEN}Switched to${NC} ${BLUE}$name${NC}"
     echo -e "Now using: $dir"
+}
+
+# IDE integration setup
+ide_setup() {
+    local target_account=""
+
+    # Parse flags
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --account|-a)
+                target_account="${2:-}"
+                if [[ -z "$target_account" ]]; then
+                    echo -e "${RED}Error:${NC} --account requires a name"
+                    exit 1
+                fi
+                shift 2
+                ;;
+            *)
+                echo -e "${RED}Error:${NC} Unknown option '$1'"
+                echo "Usage: claudewho ide-setup [--account <name>]"
+                exit 1
+                ;;
+        esac
+    done
+
+    local accounts
+    accounts=$(get_accounts)
+
+    if [[ -z "$accounts" ]]; then
+        echo -e "${YELLOW}No accounts configured.${NC}"
+        echo "Create one first with: claudewho add <name>"
+        return 0
+    fi
+
+    # Validate target account if specified
+    if [[ -n "$target_account" ]]; then
+        if ! account_exists "$target_account"; then
+            echo -e "${RED}Error:${NC} Account '$target_account' not found"
+            echo "Run 'claudewho list' to see available accounts."
+            exit 1
+        fi
+    fi
+
+    # Ensure all wrappers exist
+    create_ide_wrapper
+    while IFS= read -r name; do
+        create_ide_account_wrapper "$name"
+    done <<< "$accounts"
+
+    local current
+    current=$(get_current_account)
+
+    if [[ -n "$target_account" ]]; then
+        # Show config for a specific account
+        echo -e "${BOLD}IDE setup for account '${BLUE}${target_account}${NC}${BOLD}':${NC}"
+        echo ""
+        echo "  Add to your VSCode settings.json:"
+        echo ""
+        echo -e "    ${CYAN}\"claude-code.claudeProcessWrapper\": \"${WRAPPER_DIR}/claudewho-ide-${target_account}\"${NC}"
+        echo ""
+        echo "  For workspace-specific config, add to .vscode/settings.json instead."
+    else
+        # Show full instructions
+        echo -e "${BOLD}IDE Integration Setup${NC}"
+        echo ""
+        echo -e "${BOLD}Option 1:${NC} Follow current account ${DIM}(all IDE windows share one account)${NC}"
+        echo ""
+        echo -e "  Add to your VSCode settings.json (${BOLD}Cmd+Shift+P${NC} > \"Open Settings (JSON)\"):"
+        echo ""
+        echo -e "    ${CYAN}\"claude-code.claudeProcessWrapper\": \"${WRAPPER_DIR}/claudewho-ide\"${NC}"
+        echo ""
+        echo "  Then switch accounts with: claudewho use <name>"
+        if [[ -n "$current" ]]; then
+            echo -e "  Current account: ${GREEN}${current}${NC}"
+        fi
+        echo ""
+        echo -e "${BOLD}Option 2:${NC} Fixed account per workspace ${DIM}(supports parallel accounts)${NC}"
+        echo ""
+        echo "  Add to your workspace .vscode/settings.json:"
+        echo ""
+        echo -e "    ${CYAN}\"claude-code.claudeProcessWrapper\": \"${WRAPPER_DIR}/claudewho-ide-<name>\"${NC}"
+        echo ""
+        echo "  Available per-account wrappers:"
+        while IFS= read -r name; do
+            local marker=""
+            if [[ "$name" == "$current" ]]; then
+                marker=" ${GREEN}(current)${NC}"
+            fi
+            echo -e "    ${BLUE}${WRAPPER_DIR}/claudewho-ide-${name}${NC}${marker}"
+        done <<< "$accounts"
+    fi
+    echo ""
 }
 
 # Print shell initialization (aliases)
@@ -444,6 +597,9 @@ main() {
             ;;
         use|run|launch)
             use_account "$@"
+            ;;
+        ide-setup|ide|vscode-setup)
+            ide_setup "$@"
             ;;
         shell-init|init|aliases)
             shell_init

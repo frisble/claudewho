@@ -95,7 +95,8 @@ This will prompt for confirmation before deleting the account directory.
 | `list` | List all configured accounts |
 | `add <name>` | Create a new account configuration |
 | `remove <name>` | Remove an account (with confirmation) |
-| `use <name>` | Launch Claude with the specified account |
+| `use <name>` | Switch to the specified account |
+| `ide-setup` | Configure IDE integration (VSCode, Antigravity) |
 | `shell-init` | Print shell aliases for sourcing |
 | `version` | Show version information |
 | `help` | Show help message |
@@ -158,6 +159,50 @@ source ~/.zshrc
 ```
 
 Your accounts will now be accessible as `claudewho-work`, `claudewho-personal`, etc.
+
+## IDE Integration (VSCode, Antigravity)
+
+The Claude Code IDE extensions bundle their own CLI and don't respect `CLAUDE_CONFIG_DIR` by default. claudewho provides wrapper scripts that work with the extension's `claudeProcessWrapper` setting.
+
+### Setup
+
+```bash
+claudewho ide-setup
+```
+
+This creates the necessary wrapper scripts and prints configuration instructions.
+
+### Option 1: Follow current account
+
+All IDE windows share whichever account is active via `claudewho use <name>`.
+
+Add to your VSCode settings.json (`Cmd+Shift+P` > "Open Settings (JSON)"):
+
+```json
+"claude-code.claudeProcessWrapper": "~/.local/bin/claudewho-ide"
+```
+
+### Option 2: Per-workspace account (parallel)
+
+Different workspaces can use different accounts simultaneously.
+
+Add to your workspace's `.vscode/settings.json`:
+
+```json
+"claude-code.claudeProcessWrapper": "~/.local/bin/claudewho-ide-work"
+```
+
+To see all available per-account wrappers:
+
+```bash
+claudewho ide-setup
+```
+
+Or get the config for a specific account:
+
+```bash
+claudewho ide-setup --account work
+```
 
 ## How it works
 
