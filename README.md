@@ -34,20 +34,6 @@ chmod +x bin/claudewho
 sudo ln -s "$(pwd)/bin/claudewho" /usr/local/bin/claudewho
 ```
 
-## Setup
-
-Add this line to your `~/.zshrc` (or `~/.bashrc` for Bash):
-
-```bash
-eval "$(claudewho shell-init)"
-```
-
-Then reload your shell:
-
-```bash
-source ~/.zshrc
-```
-
 ## Usage
 
 ### Create accounts
@@ -77,10 +63,8 @@ Use claudewho-<name> or claudewho use <name> to launch.
 
 ### Launch Claude with an account
 
-After running `source ~/.zshrc`, you can use:
-
 ```bash
-# Using the alias (recommended)
+# Using the wrapper command (recommended)
 claudewho-work
 claudewho-personal
 
@@ -157,7 +141,7 @@ claudewho ide-setup --account work
 
 - Each account is stored in `~/.claudewho-<name>/`
 - Account names are tracked in `~/.claudewho.conf`
-- The `shell-init` command generates aliases like `claudewho-work` that set `CLAUDE_CONFIG_DIR` before launching Claude
+- Wrapper scripts like `claudewho-work` are created in `~/.local/bin/` and set `CLAUDE_CONFIG_DIR` before launching Claude
 - Your original `~/.claude` directory is never modified
 
 ## Requirements

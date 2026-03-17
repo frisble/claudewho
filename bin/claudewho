@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-VERSION="2.1.0"
+VERSION="2.2.0"
 CONFIG_FILE="${CLAUDEWHO_CONFIG:-$HOME/.claudewho.conf}"
 CONFIG_DIR_PREFIX="$HOME/.claudewho-"
 WRAPPER_DIR="$HOME/.local/bin"
@@ -234,9 +234,11 @@ WRAPPER_EOF
 # Show banner
 show_banner() {
     echo ""
-    echo -e "${ORANGE} ▄▖▜      ▌                ▗   ${NC}"
-    echo -e "${ORANGE} ▌ ▐ ▀▌▌▌▛▌█▌  ▀▌▛▘▛▘▛▌▌▌▛▌▜▘▛▘${NC}"
-    echo -e "${ORANGE} ▙▖▐▖█▌▙▌▙▌▙▖  █▌▙▖▙▖▙▌▙▌▌▌▐▖▄▌${NC}"
+    echo -e "${ORANGE}   ____ _        _   _   _ ____  _______        ___   _  ___  ${NC}"
+    echo -e "${ORANGE}  / ___| |      / \\ | | | |  _ \\| ____\\ \\      / / | | |/ _ \\ ${NC}"
+    echo -e "${ORANGE} | |   | |     / _ \\| | | | | | |  _|  \\ \\ /\\ / /| |_| | | | |${NC}"
+    echo -e "${ORANGE} | |___| |___ / ___ \\ |_| | |_| | |___  \\ V  V / |  _  | |_| |${NC}"
+    echo -e "${ORANGE}  \\____|_____/_/   \\_\\___/|____/|_____|  \\_/\\_/  |_| |_|\\___/ ${NC}"
     echo ""
 }
 
@@ -251,7 +253,7 @@ usage() {
     echo "    add <name>          Create a new account configuration"
     echo "    remove <name>       Remove an account (with confirmation)"
     echo "    use <name>          Switch to an account"
-    echo "    ide-setup           Configure IDE integration (VSCode, Antigravity)"
+    echo "    ide-setup           Configure IDE integration (VSCode)"
     echo "    shell-init          Print shell aliases (alternative to wrapper scripts)"
     echo "    version             Show version information"
     echo "    help                Show this help message"
