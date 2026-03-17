@@ -5,7 +5,7 @@ class Claudewho < Formula
   desc "Manage multiple Claude Code account configurations"
   homepage "https://github.com/frisble/claudewho"
   url "https://github.com/frisble/claudewho/archive/refs/tags/2.0.0.tar.gz"
-  sha256 "PLACEHOLDER_UPDATE_AFTER_RELEASE"
+  sha256 "94cb9888f76a206dd72ceeddbf0e28093a567118cba5bf15862dff544980c94d"
   license "MIT"
   head "https://github.com/frisble/claudewho.git", branch: "main"
 
